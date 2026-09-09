@@ -22,7 +22,7 @@ var _ = Describe("HttpLogger", func() {
 	})
 
 	Context("when transport returns response,", func() {
-		It("logs signing metadata for signature/header debugging", func() {
+		It("log with 's3 http request' message", func() {
 			mockTransport := roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: 403,
@@ -37,8 +37,8 @@ var _ = Describe("HttpLogger", func() {
 				}, nil
 			})
 			loggingTransport := NewS3LoggingTransport(mockTransport)
-			req := httptest.NewRequest("GET", "https://objectstorage.example.com/bucket/key?x-id=GetObject", nil)
-			req.Header.Set("Host", "objectstorage.example.com")
+			req := httptest.NewRequest("GET", "http://example.com/test", nil)
+			req.Header.Set("Host", "example.com")
 			req.Header.Set("Range", "bytes=0-2")
 			req.Header.Set("X-Amz-Content-Sha256", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
 			req.Header.Set("X-Amz-Date", "20250909T080000Z")
@@ -48,7 +48,7 @@ var _ = Describe("HttpLogger", func() {
 			logs := buf.String()
 
 			Expect(logs).To(ContainSubstring(`"msg":"s3 http request"`))
-			Expect(logs).To(ContainSubstring(`"host":"objectstorage.example.com"`))
+			Expect(logs).To(ContainSubstring(`"host":"example.com"`))
 			Expect(logs).To(ContainSubstring(`"signing_algorithm":"AWS4-HMAC-SHA256"`))
 			Expect(logs).To(ContainSubstring(`"signed_headers":"host;x-amz-content-sha256;x-amz-date"`))
 			Expect(logs).To(ContainSubstring(`"credential_scope":"20250909/us-east-1/s3/aws4_request"`))
